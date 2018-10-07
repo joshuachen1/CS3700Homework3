@@ -22,7 +22,6 @@ public class MaxtrixMultiplication {
 
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
-        printMatrix(matrixC);
 
         // 2 Threads
         matrixC = new float[m][p];
@@ -35,8 +34,7 @@ public class MaxtrixMultiplication {
 
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
-        printMatrix(matrixC);
-        
+
         // 4 Threads
         matrixC = new float[m][p];
         timeIn = System.nanoTime();
@@ -52,7 +50,6 @@ public class MaxtrixMultiplication {
 
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9));
-        printMatrix(matrixC);
     }
 
     public void matMult(Phaser ph, float[][] A, float[][] B, float[][] C, int m1, int m2, int n, int p1, int p2) {
