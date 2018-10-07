@@ -36,8 +36,7 @@ public class MaxtrixMultiplication {
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
         printMatrix(matrixC);
-
-
+        
         // 4 Threads
         matrixC = new float[m][p];
         timeIn = System.nanoTime();
