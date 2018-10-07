@@ -1,4 +1,3 @@
-import java.util.Arrays;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -9,8 +8,8 @@ public class MaxtrixMultiplication {
         int m, n, p;
 
         m = n = p = 1024;
-        matrixA = fillMatrix(m, n);
-        matrixB = fillMatrix(n, p);
+        matrixA = fillMatrixWith1(m, n);
+        matrixB = fillMatrixWith1(n, p);
 
         long timeIn, timeOut;
         int sleepTime = 2000;
@@ -23,7 +22,7 @@ public class MaxtrixMultiplication {
 
         Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
-        System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9) + sleepTime);
+        System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
 
         // 2 Threads
         matrixC = new float[m][p];
@@ -36,7 +35,7 @@ public class MaxtrixMultiplication {
 
         Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
-        System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9) + sleepTime);
+        System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
 
         // 4 Threads
         matrixC = new float[m][p];
@@ -53,7 +52,7 @@ public class MaxtrixMultiplication {
 
         Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
-        System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9) + sleepTime);
+        System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9));
 
         // 8 Threads
         matrixC = new float[m][p];
@@ -74,7 +73,7 @@ public class MaxtrixMultiplication {
 
         Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
-        System.out.printf("Time with 8 Threads: %5.10f sec\n", (timeOut / 1e9) + sleepTime);
+        System.out.printf("Time with 8 Threads: %5.10f sec\n", (timeOut / 1e9));
     }
 
     public void matMult(Phaser ph, float[][] A, float[][] B, float[][] C, int m1, int m2, int n, int p1, int p2) {
@@ -102,6 +101,17 @@ public class MaxtrixMultiplication {
         for (int i = 0; i < temp.length; i++) {
             for (int j = 0; j < temp[0].length; j++) {
                 temp[i][j] = ThreadLocalRandom.current().nextFloat();
+            }
+        }
+        return temp;
+    }
+
+    public static float[][] fillMatrixWith1(int row, int col) {
+        float[][] temp = new float[row][col];
+
+        for (int i = 0; i < temp.length; i++) {
+            for (int j = 0; j < temp[0].length; j++) {
+                temp[i][j] = 1;
             }
         }
         return temp;
