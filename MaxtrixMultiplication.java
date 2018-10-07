@@ -7,7 +7,7 @@ public class MaxtrixMultiplication {
         float[][] matrixA, matrixB, matrixC;
         int m, n, p;
 
-        m = n = p = 8;
+        m = n = p = 64;
         matrixA = fillMatrix(m, n);
         matrixB = fillMatrix(n, p);
         matrixC = new float[m][p];
@@ -23,6 +23,14 @@ public class MaxtrixMultiplication {
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m, n, p / 2, p);
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
+
+        timeIn = System.nanoTime();
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m / 4, n, 0, p / 4);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 4, m / 2, n, p / 4, p / 2);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m * 3 / 4, n, p / 2, p * 3 / 4);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m * 3 / 4 , m, n, p * 3 / 4, p);
+        timeOut = System.nanoTime() - timeIn;
+        System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9));
 
     }
 
@@ -40,6 +48,7 @@ public class MaxtrixMultiplication {
                         }
                     }
                 }
+                ph.arriveAndDeregister();
             }
         }).start();
     }
