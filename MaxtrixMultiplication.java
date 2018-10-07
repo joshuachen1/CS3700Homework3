@@ -12,21 +12,34 @@ public class MaxtrixMultiplication {
         matrixA = fillMatrix(m, n);
         matrixB = fillMatrix(n, p);
 
+        long timeIn, timeOut;
+
         // 1 Thread
         matrixC = new float[m][p];
-
-        long timeIn = System.nanoTime();
+        timeIn = System.nanoTime();
 
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, 0, p);
 
-        long timeOut = System.nanoTime() - timeIn;
+        timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
+        printMatrix(matrixC);
+
+        // 2 Threads
+        matrixC = new float[m][p];
+        timeIn = System.nanoTime();
+
+        // Quad 1 & 3
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, 0, p / 2);
+        // Quad 2 & 4
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, p / 2, p);
+
+        timeOut = System.nanoTime() - timeIn;
+        System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
         printMatrix(matrixC);
 
 
         // 4 Threads
         matrixC = new float[m][p];
-
         timeIn = System.nanoTime();
 
         // Quad 1
