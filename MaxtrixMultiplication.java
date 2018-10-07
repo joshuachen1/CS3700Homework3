@@ -3,16 +3,17 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MaxtrixMultiplication {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException{
         Phaser ph = new Phaser();
         float[][] matrixA, matrixB, matrixC;
         int m, n, p;
 
-        m = n = p = 8;
+        m = n = p = 1024;
         matrixA = fillMatrix(m, n);
         matrixB = fillMatrix(n, p);
 
         long timeIn, timeOut;
+        int sleepTime = 2000;
 
         // 1 Thread
         matrixC = new float[m][p];
@@ -20,8 +21,9 @@ public class MaxtrixMultiplication {
 
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, 0, p);
 
+        Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
-        System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
+        System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9) + sleepTime);
 
         // 2 Threads
         matrixC = new float[m][p];
@@ -32,8 +34,9 @@ public class MaxtrixMultiplication {
         // Quad 2 & 4
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, p / 2, p);
 
+        Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
-        System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
+        System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9) + sleepTime);
 
         // 4 Threads
         matrixC = new float[m][p];
@@ -48,8 +51,30 @@ public class MaxtrixMultiplication {
         // Quad 4
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m, n, p / 2, p);
 
+        Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
-        System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9));
+        System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9) + sleepTime);
+
+        // 8 Threads
+        matrixC = new float[m][p];
+        timeIn = System.nanoTime();
+
+        // Quad 1
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m / 4, n, 0, p / 2);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 4, m / 2, n, 0, p / 2);
+        // Quad 2
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 4, m / 2, n, p / 2, p);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m / 4, n, p / 2, p);
+        // Quad 3
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m * 3 / 4, n, 0, p / 2);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m * 3 / 4, n, p / 2, p);
+        //Quad 4
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m * 3 / 4, m, n, 0, p / 2);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m, n, p / 2, p);
+
+        Thread.sleep(sleepTime);
+        timeOut = System.nanoTime() - timeIn;
+        System.out.printf("Time with 8 Threads: %5.10f sec\n", (timeOut / 1e9) + sleepTime);
     }
 
     public void matMult(Phaser ph, float[][] A, float[][] B, float[][] C, int m1, int m2, int n, int p1, int p2) {
