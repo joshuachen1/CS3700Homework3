@@ -18,7 +18,7 @@ public class MaxtrixMultiplication {
         long timeIn = System.nanoTime();
 
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, 0, p);
-        
+
         long timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
         printMatrix(matrixC);
@@ -71,21 +71,6 @@ public class MaxtrixMultiplication {
             }
         }
         return temp;
-    }
-
-    public static int[][] partialMatrix (int[][] current, boolean upper, int start, int end) {
-        int[][] temp = new int [end - start][end - start];
-
-        if (upper)
-            for (int i = 0; i < current.length / 2; i++)
-                temp[i] = Arrays.copyOfRange(current[i], start, end);
-
-        else
-            for (int i = 0; i < current.length / 2; i++)
-                temp[i] = Arrays.copyOfRange(current[i + current.length / 2], start, end);
-
-        return temp;
-
     }
 
     public static void printMatrix (float[][] m) {
