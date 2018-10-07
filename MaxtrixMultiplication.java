@@ -5,43 +5,75 @@ public class MaxtrixMultiplication {
         float[][] matrixA, matrixB, matrixC;
         int m, n, p;
 
-        // 1 Thread
-        for (int size = 4; size <= 128; size *= 2) {
-            m = n = p = size;
+        m = n = p = 16;
+        matrixA = fillMatrix(m, n);
+        matrixB = fillMatrix(n, p);
+        matrixC = new float[m][p];
 
-            matrixA = fillMatrix(m, n);
-            matrixB = fillMatrix(n, p);
-            matrixC = new float[m][p];
+        matMultThread1(matrixA, matrixB, matrixC, m, n, p);
 
-            // 1 Thread
-            long timeIn = System.nanoTime();
-            matMult(matrixA, matrixB, matrixC, m, n, p, 1);
-            long timeOut = System.nanoTime() - timeIn;
-
-            System.out.printf("Time with 1 Thread (%d x %d): %d (ns)\n", m, p, timeOut);
-        }
-
-
-        /*
-        System.out.println("Matrix A:");
-        printMatrix(matrixA);
-        System.out.println("\nMatrix B:");
-        printMatrix(matrixB);
-        System.out.println("\nMatrix C:");
-        printMatrix(matrixC);
-        */
+        matMultThread2(matrixA, matrixB, matrixC, m, n, p);
+        
     }
 
-    public static void matMult (float[][] A, float[][] B, float[][] C, int m, int n, int p, int numThreads) {
+    public static void matMultThread1 (float[][] A, float[][] B, float[][] C, int m, int n, int p) {
 
-        // Classical Matrix Multiplication
-        for (int row = 0; row < m; row++) {
-            for (int col = 0; col < p; col++) {
-                for (int i = 0; i < n; i++) {
-                    C[row][col] += A[row][i] * B[i][col];
+        Thread t0 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int row = 0; row < m; row++) {
+                    for (int col = 0; col < p; col++) {
+                        C[row][col] = 0;
+                        for (int k = 0; k < n; k++) {
+                            C[row][col] += A[row][k] * B[k][col];
+                        }
+                    }
                 }
             }
-        }
+        });
+
+        long timeIn = System.nanoTime();
+        t0.start();
+        long timeOut = System.nanoTime() - timeIn;
+        System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
+    }
+    public static void matMultThread2 (float[][] A, float[][] B, float[][] C, int m, int n, int p) {
+
+        // Starts from C[0][0] to C[m/2][p/2]
+        Thread t0 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int row = 0; row < m / 2; row++) {
+                    for (int col = 0; col < p / 2; col++) {
+                        C[row][col] = 0;
+                        for (int k = 0; k < n; k++) {
+                            C[row][col] += A[row][k] * B[k][col];
+                        }
+                    }
+                }
+            }
+        });
+
+        // Starts from C[m/2][p/2] to C[m][p]
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int row = m / 2; row < m; row++) {
+                    for (int col = p / 2; col < p; col++) {
+                        C[row][col] = 0;
+                        for (int k = 0; k < n; k++) {
+                            C[row][col] += A[row][k] * B[k][col];
+                        }
+                    }
+                }
+            }
+        });
+
+        long timeIn = System.nanoTime();
+        t0.start();
+        t1.start();
+        long timeOut = System.nanoTime() - timeIn;
+        System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
     }
 
     public static float[][] fillMatrix(int row, int col) {
@@ -66,5 +98,6 @@ public class MaxtrixMultiplication {
             }
             System.out.println("]");
         }
+        System.out.println();
     }
 }
