@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -7,41 +8,50 @@ public class MaxtrixMultiplication {
         float[][] matrixA, matrixB, matrixC;
         int m, n, p;
 
-        m = n = p = 64;
+        m = n = p = 8;
         matrixA = fillMatrix(m, n);
         matrixB = fillMatrix(n, p);
         matrixC = new float[m][p];
 
 
+        // 1 Thread
         long timeIn = System.nanoTime();
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, 0, p);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m, n, p);
         long timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
+        printMatrix(matrixC);
+
+        // 2 Threads
+        matrixC = new float[m][p];
 
         timeIn = System.nanoTime();
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m / 2, n, 0, p / 2);
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m, n, p / 2, p);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, n, p / 2);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m, n, p);
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
+        printMatrix(matrixC);
+
+        // 4 Threads
+        matrixC = new float[m][p];
 
         timeIn = System.nanoTime();
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m / 4, n, 0, p / 4);
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 4, m / 2, n, p / 4, p / 2);
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m * 3 / 4, n, p / 2, p * 3 / 4);
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m * 3 / 4 , m, n, p * 3 / 4, p);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 4, n, p / 4);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, n, p / 2);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m * 3 / 4, n, p * 3 / 4);
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m, n, p);
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9));
-
+        printMatrix(matrixC);
     }
 
-    public void matMult(Phaser ph, float[][] A, float[][] B, float[][] C, int m1, int m2, int n, int p1, int p2) {
+    public void matMult(Phaser ph, float[][] A, float[][] B, float[][] C, int m2, int n, int p2) {
         ph.register();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int row = m1; row < m2; row++) {
-                    for (int col = p1; col < p2; col++) {
+                for (int row = 0; row < m2; row++) {
+                    for (int col = 0; col < p2; col++) {
                         C[row][col] = 0;
                         for (int k = 0; k < n; k++) {
                             C[row][col] += A[row][k] * B[k][col];
@@ -62,6 +72,21 @@ public class MaxtrixMultiplication {
             }
         }
         return temp;
+    }
+
+    public static int[][] partialMatrix (int[][] current, boolean upper, int start, int end) {
+        int[][] temp = new int [end - start][end - start];
+
+        if (upper)
+            for (int i = 0; i < current.length / 2; i++)
+                temp[i] = Arrays.copyOfRange(current[i], start, end);
+
+        else
+            for (int i = 0; i < current.length / 2; i++)
+                temp[i] = Arrays.copyOfRange(current[i + current.length / 2], start, end);
+
+        return temp;
+
     }
 
     public static void printMatrix (float[][] m) {
