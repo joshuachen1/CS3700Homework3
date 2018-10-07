@@ -11,47 +11,46 @@ public class MaxtrixMultiplication {
         m = n = p = 8;
         matrixA = fillMatrix(m, n);
         matrixB = fillMatrix(n, p);
-        matrixC = new float[m][p];
-
 
         // 1 Thread
+        matrixC = new float[m][p];
+
         long timeIn = System.nanoTime();
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m, n, p);
+
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, 0, p);
+        
         long timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
         printMatrix(matrixC);
 
-        // 2 Threads
-        matrixC = new float[m][p];
-
-        timeIn = System.nanoTime();
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, n, p / 2);
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m, n, p);
-        timeOut = System.nanoTime() - timeIn;
-        System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
-        printMatrix(matrixC);
 
         // 4 Threads
         matrixC = new float[m][p];
 
         timeIn = System.nanoTime();
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 4, n, p / 4);
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, n, p / 2);
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m * 3 / 4, n, p * 3 / 4);
-        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m, n, p);
+
+        // Quad 1
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m / 2, n, 0, p / 2);
+        // Quad 2
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m / 2, n, p / 2, p);
+        // Quad 3
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m, n, 0, p / 2);
+        // Quad 4
+        new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m, n, p / 2, p);
+
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9));
         printMatrix(matrixC);
     }
 
-    public void matMult(Phaser ph, float[][] A, float[][] B, float[][] C, int m2, int n, int p2) {
+    public void matMult(Phaser ph, float[][] A, float[][] B, float[][] C, int m1, int m2, int n, int p1, int p2) {
         ph.register();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int row = 0; row < m2; row++) {
-                    for (int col = 0; col < p2; col++) {
+                for (int row = m1; row < m2; row++) {
+                    for (int col = p1; col < p2; col++) {
                         C[row][col] = 0;
                         for (int k = 0; k < n; k++) {
                             C[row][col] += A[row][k] * B[k][col];
