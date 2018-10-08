@@ -1,3 +1,4 @@
+import javax.naming.ldap.SortKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Phaser;
@@ -86,9 +87,10 @@ public class SockMatching {
 
                             sockQueue.add(currentSock);
                             System.out.println("Send " + currentSock.color + " Socks to Washer. Total inside queue " + sockQueue.size());
+                        }
 
-                            new SockMatching().washingSocksThread(ph1, ph2, ph3, currentSock);
-
+                        if (sockQueue.size() > 0) {
+                            new SockMatching().washingSocksThread(ph1, ph2, ph3, sockQueue.remove(0));
                             // Give matchingSocksThread time
                             try {
                                 Thread.sleep(100);
