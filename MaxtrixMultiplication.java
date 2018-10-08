@@ -20,6 +20,7 @@ public class MaxtrixMultiplication {
 
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, 0, p);
 
+        ph.awaitAdvance(ph.getPhase());
         Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 1 Threads: %5.10f sec\n", (timeOut / 1e9));
@@ -33,6 +34,7 @@ public class MaxtrixMultiplication {
         // Quad 2 & 4
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, 0, m, n, p / 2, p);
 
+        ph.awaitAdvance(ph.getPhase());
         Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 2 Threads: %5.10f sec\n", (timeOut / 1e9));
@@ -50,6 +52,7 @@ public class MaxtrixMultiplication {
         // Quad 4
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m, n, p / 2, p);
 
+        ph.awaitAdvance(ph.getPhase());
         Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 4 Threads: %5.10f sec\n", (timeOut / 1e9));
@@ -71,6 +74,7 @@ public class MaxtrixMultiplication {
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m * 3 / 4, m, n, 0, p / 2);
         new MaxtrixMultiplication().matMult(ph, matrixA, matrixB, matrixC, m / 2, m, n, p / 2, p);
 
+        ph.awaitAdvance(ph.getPhase());
         Thread.sleep(sleepTime);
         timeOut = System.nanoTime() - timeIn;
         System.out.printf("Time with 8 Threads: %5.10f sec\n", (timeOut / 1e9));
