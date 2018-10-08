@@ -65,7 +65,7 @@ public class OrderedLeaderElection {
                     electedOfficials.get(index).rank = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
 
                     if (leader.name == null) {
-                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", electedOfficials.get(index).name, electedOfficials.get(index).rank, Thread.currentThread().getName());
+                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", electedOfficials.get(index).name, electedOfficials.get(index).rank, electedOfficials.get(index).name);
                     } else {
                         System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", electedOfficials.get(index).name, electedOfficials.get(index).rank, leader.name);
                     }
