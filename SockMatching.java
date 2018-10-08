@@ -5,10 +5,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class SockMatching {
     public static void main(String[] args) throws InterruptedException{
-        Phaser ph1 = new Phaser();
-        Phaser ph2 = new Phaser();
-        Phaser ph3 = new Phaser();
         final int numThreads = 4;
+
+        // Four color sock Threads
+        Phaser ph1 = new Phaser(numThreads);
+        // One Matching Thread
+        Phaser ph2 = new Phaser(1);
+        // One Washing Thread
+        Phaser ph3 = new Phaser(1);
 
         ArrayList<Socks> socks = new ArrayList<>(Arrays.asList(
                 new Socks("Red"),
@@ -28,9 +32,6 @@ public class SockMatching {
     }
 
     private void generatingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, ArrayList<Socks> socks, int color) {
-        // Thread registers themselves to the Phaser
-        ph1.register();
-
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -42,32 +43,46 @@ public class SockMatching {
 
                     threadSock.addNumSocks();
 
-                    ph3.awaitAdvance(ph3.getPhase());
+                    matchingSocksThread(ph1, ph2, ph3, socks);
+
+                    // wait for matchingSocksThread to determine pairs
+                    ph2.awaitAdvance(ph2.getPhase());
                 }
-                ph1.arriveAndDeregister();
             }
         }).start();
     }
     private void matchingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, ArrayList<Socks> socks) {
-        ph2.register();
-
         new Thread(new Runnable() {
             @Override
             public void run() {
                 boolean matching = true;
                 while (matching) {
+                    // Wait for socks to be generated
                     ph1.awaitAdvance(ph1.getPhase());
-                    Socks redSock = socks.get(0);
-                    Socks greenSock = socks.get(1);
-                    Socks blueSock = socks.get(2);;
-                    Socks orangeSock = socks.get(3);
 
-                    if (redSock.getNumSocks() >= 2) {
-                        redSock.removeSockPair();
-                        ph2.arrive();
+                    for (int i = 0; i < socks.size(); i++) {
+                        Socks colorSock = socks.get(i);
+                        if (colorSock.getNumSocks() >= 2) {
+                            System.out.println("Matching Thread: Send " + colorSock.color + " Socks to Washer");
+                            new SockMatching().washingSocksThread(ph1, ph2, ph3, colorSock);
+                            ph3.awaitAdvance(ph3.getPhase());
+                        }
                     }
-
+                    // Notify matching complete
+                    ph2.arrive();
                 }
+            }
+        }).start();
+    }
+
+    private void washingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, Socks sock) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                sock.removeSockPair();
+                // Notify generatingSockThread
+                ph3.arrive();
+                System.out.println("Washing Thread: Destroyed " + sock.color + " socks");
             }
         }).start();
     }
