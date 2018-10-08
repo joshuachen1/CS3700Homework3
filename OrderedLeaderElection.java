@@ -13,28 +13,29 @@ public class OrderedLeaderElection {
         final int numThreads = 10;
         ArrayList<Thread> thread = new ArrayList<>();
 
-        ElectedOfficial[] electedOfficials = new ElectedOfficial[numThreads];
+        ArrayList<ElectedOfficial> electedOfficials = new ArrayList<>();
         ElectedOfficial leader = new ElectedOfficial();
 
-        Thread rankThread = new Thread(new RankThread(leader));
+        Thread rankThread = new Thread(new RankThread(electedOfficials ,leader));
         rankThread.start();
 
-        for (int i = 0; i < numThreads; i++) {
-            electedOfficials[i] = new ElectedOfficial();
-        }
-
-        for (int i = 0; i < numThreads; i++) {
-            thread.add(new Thread(new ElectedOfficialThread(rankThread, electedOfficials[i], leader)));
-            thread.get(i).start();
-            Thread.sleep(1000);
+        synchronized (leader) {
+            for (int i = 0; i < numThreads; i++) {
+                electedOfficials.add(new ElectedOfficial());
+                thread.add(new Thread(new ElectedOfficialThread(rankThread, electedOfficials.get(i), leader)));
+                thread.get(i).start();
+                Thread.sleep(1000);
+                leader.wait();
+            }
         }
     }
 
     private static class RankThread implements Runnable {
-
+        ArrayList<ElectedOfficial> electedOfficials;
         ElectedOfficial leader;
 
-        public RankThread(ElectedOfficial leader) {
+        public RankThread(ArrayList<ElectedOfficial> electedOfficials, ElectedOfficial leader) {
+            this.electedOfficials = electedOfficials;
             this.leader = leader;
             this.leader.name = null;
             this.leader.rank = Integer.MIN_VALUE;
@@ -49,8 +50,15 @@ public class OrderedLeaderElection {
                     // Wait for a new elected officials to be created
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
-                    System.out.println("Changing Leader");
-                    changingLeader = true;
+                    synchronized (leader) {
+                        System.out.println("Changing Leader");
+                        changingLeader = true;
+
+                        for (int i = 0; i < electedOfficials.size(); i++) {
+
+                        }
+                        leader.notifyAll();
+                    }
                 }
             }
         }
@@ -69,16 +77,24 @@ public class OrderedLeaderElection {
 
         @Override
         public void run() {
-            elecOff.name = Thread.currentThread().getName();
-            elecOff.rank = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+            synchronized (leader) {
+                try {
+                    elecOff.name = Thread.currentThread().getName();
+                    elecOff.rank = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
 
-            if (leader.name == null) {
-                System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", elecOff.name, elecOff.rank, Thread.currentThread().getName());
-            } else {
-                System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", elecOff.name, elecOff.rank, leader.name);
+                    if (leader.name == null) {
+                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", elecOff.name, elecOff.rank, Thread.currentThread().getName());
+                    } else {
+                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", elecOff.name, elecOff.rank, leader.name);
+                    }
+
+                    rankThread.interrupt();
+                    leader.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
             }
-
-            rankThread.interrupt();
         }
     }
 }
