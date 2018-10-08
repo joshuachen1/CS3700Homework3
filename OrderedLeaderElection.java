@@ -63,8 +63,7 @@ public class OrderedLeaderElection {
                     } else {
                         System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", electedOfficials.get(index).name, electedOfficials.get(index).rank, leader.name);
                     }
-
-
+                    
                     // Notify rankThread of new elected official
                     rankThread.interrupt();
                 }
