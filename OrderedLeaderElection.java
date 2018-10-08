@@ -42,8 +42,9 @@ public class OrderedLeaderElection {
 
                             for (int i = leader.ID; i < electedOfficials.size(); i++) {
                                 if (electedOfficials.get(i).rank > leader.rank) {
-                                    System.out.println("\nChanging leader\n");
+                                    System.out.println("Changing leader from " + leader.name + " to " + electedOfficials.get(i).name);
                                     updateLeader(leader, electedOfficials.get(i), i);
+                                    leader.notifyAll();
                                 }
                             }
                         }
@@ -61,22 +62,32 @@ public class OrderedLeaderElection {
             threads.add(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    electedOfficials.get(index).name = Thread.currentThread().getName();
-                    electedOfficials.get(index).rank = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    String name = Thread.currentThread().getName();
+                    electedOfficials.get(index).name = name;
+                    int rank = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    electedOfficials.get(index).rank = rank;
 
-                    if (leader.name == null) {
-                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", electedOfficials.get(index).name, electedOfficials.get(index).rank, electedOfficials.get(index).name);
-                    } else {
-                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", electedOfficials.get(index).name, electedOfficials.get(index).rank, leader.name);
+                    synchronized (leader) {
+                        try {
+                            System.out.println("\nCreating " + name);
+                            // Notify rankThread of new elected official
+                            rankThread.interrupt();
+                            leader.wait(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
 
-                    // Notify rankThread of new elected official
-                    rankThread.interrupt();
+                    if (leader.name == null) {
+                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", name, rank, name);
+                    } else {
+                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", name, rank, leader.name);
+                    }
                 }
             }));
 
             threads.get(i).start();
-            Thread.sleep(1500);
+            Thread.sleep(500);
         }
     }
 
