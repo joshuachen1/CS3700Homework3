@@ -25,7 +25,14 @@ public class SockMatching {
         for (int i = 0; i < numThreads; i++) {
             new SockMatching().generatingSocksThread(ph1, ph2, ph3, socks, i);
         }
-        //new SockMatching().matchingSocksThread(ph1, ph2, ph3, socks);
+        new SockMatching().matchingSocksThread(ph1, ph2, ph3, socks);
+
+        Thread.sleep(5000);
+
+        for (Socks s :
+                socks) {
+            System.out.println(s.color + " " + s.getNumSocks() + " remaining");
+        }
     }
 
     private void generatingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, ArrayList<Socks> socks, int color) {
@@ -54,7 +61,21 @@ public class SockMatching {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ph1.awaitAdvance(ph1.getPhase());
+                boolean matching = true;
+                while (matching) {
+                    matching = false;
+
+                    ph1.awaitAdvance(ph1.getPhase());
+
+                    for (int i = 0; i < socks.size(); i++) {
+                        Socks currentSock = socks.get(i);
+
+                        if (currentSock.numSocks >= 2) {
+                            matching = true;
+                            System.out.println("Matching " + currentSock.color + " Socks");
+                            currentSock.removeSockPair();
+                        }
+                    }
 
                 /*
                 for (int i = 0; i < socks.size(); i++) {
@@ -66,6 +87,9 @@ public class SockMatching {
                     }
                 }
                 */
+
+
+                }
             }
         }).start();
     }
