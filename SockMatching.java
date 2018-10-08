@@ -44,10 +44,6 @@ public class SockMatching {
                     int currentPhase = ph1.arrive();
 
                     ph1.awaitAdvance(currentPhase);
-                    //int currentPhase = ph1.arrive();
-                    //System.out.println("Ph1 phase: " + currentPhase);
-
-                    //ph2.awaitAdvance(ph2.getPhase());
                 }
                 ph1.arriveAndDeregister();
             }
@@ -58,20 +54,18 @@ public class SockMatching {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                boolean matching = true;
-                while (matching) {
+                ph1.awaitAdvance(ph1.getPhase());
 
-                    ph1.awaitAdvance(ph1.getPhase());
+                /*
+                for (int i = 0; i < socks.size(); i++) {
+                    Socks colorSock = socks.get(i);
 
-                    for (int i = 0; i < socks.size(); i++) {
-                        Socks colorSock = socks.get(i);
-
-                        if (colorSock.getNumSocks() >= 2) {
-                            System.out.println("Matching Thread: Send " + colorSock.color + " Socks to Washer");
-                            new SockMatching().washingSocksThread(ph1, ph2, ph3, colorSock);
-                        }
+                    if (colorSock.getNumSocks() >= 2) {
+                        System.out.println("Matching Thread: Send " + colorSock.color + " Socks to Washer");
+                        new SockMatching().washingSocksThread(ph1, ph2, ph3, colorSock);
                     }
                 }
+                */
             }
         }).start();
     }
