@@ -21,13 +21,16 @@ public class SockMatching {
                 new Socks("Orange")
         ));
 
-        new SockMatching().matchingSocksThread(ph1, ph2, ph3, socks);
+        ArrayList<Socks> sockQueue = new ArrayList<>();
+
+        new SockMatching().matchingSocksThread(ph1, ph2, ph3, socks, sockQueue);
+
         // Generate random number of socks
         for (int i = 0; i < numThreads; i++) {
             new SockMatching().generatingSocksThread(ph1, ph2, ph3, socks, i);
         }
 
-        Thread.sleep(20000);
+        Thread.sleep(30000);
         for (Socks s :
                 socks) {
             System.out.println(s.color + " " + s.getNumSocks() + " remaining");
@@ -63,7 +66,7 @@ public class SockMatching {
             }
         }).start();
     }
-    private void matchingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, ArrayList<Socks> socks) {
+    private void matchingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, ArrayList<Socks> socks, ArrayList<Socks> sockQueue) {
 
         new Thread(new Runnable() {
             @Override
@@ -80,7 +83,9 @@ public class SockMatching {
 
                         if (currentSock.numSocks >= 2) {
                             matching = true;
-                            System.out.println("Send " + currentSock.color + " Socks to Washer");
+
+                            sockQueue.add(currentSock);
+                            System.out.println("Send " + currentSock.color + " Socks to Washer. Total inside queue " + sockQueue.size());
 
                             new SockMatching().washingSocksThread(ph1, ph2, ph3, currentSock);
 
@@ -106,11 +111,11 @@ public class SockMatching {
             @Override
             public void run() {
 
-                    sock.removeSockPair();
-                    System.out.println("Washing Thread: Destroyed " + sock.color + " socks");
+                sock.removeSockPair();
+                System.out.println("Washing Thread: Destroyed " + sock.color + " socks");
 
-                    // Notify finished destroying
-                    ph3.arriveAndDeregister();
+                // Notify finished destroying
+                ph3.arriveAndDeregister();
             }
         }).start();
     }
