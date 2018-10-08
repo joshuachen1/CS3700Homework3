@@ -1,4 +1,3 @@
-import javax.naming.ldap.SortKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Phaser;
@@ -24,21 +23,21 @@ public class SockMatching {
 
         ArrayList<Socks> sockQueue = new ArrayList<>();
 
-        new SockMatching().matchingSocksThread(ph1, ph2, ph3, socks, sockQueue);
+        new SockMatching().matchingSocksThread(ph1, ph3, socks, sockQueue);
 
         // Generate random number of socks
         for (int i = 0; i < numThreads; i++) {
-            new SockMatching().generatingSocksThread(ph1, ph2, ph3, socks, i);
+            new SockMatching().generatingSocksThread(ph1, ph3, socks, i);
         }
 
-        Thread.sleep(30000);
+        Thread.sleep(15000);
         for (Socks s :
                 socks) {
             System.out.println(s.color + " " + s.getNumSocks() + " remaining");
         }
     }
 
-    private void generatingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, ArrayList<Socks> socks, int color) {
+    private void generatingSocksThread(Phaser ph1, Phaser ph3, ArrayList<Socks> socks, int color) {
         ph1.register();
 
         new Thread(new Runnable() {
@@ -67,7 +66,7 @@ public class SockMatching {
             }
         }).start();
     }
-    private void matchingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, ArrayList<Socks> socks, ArrayList<Socks> sockQueue) {
+    private void matchingSocksThread(Phaser ph1, Phaser ph3, ArrayList<Socks> socks, ArrayList<Socks> sockQueue) {
 
         new Thread(new Runnable() {
             @Override
@@ -79,6 +78,7 @@ public class SockMatching {
                     // generatingSocksThread has a pair
                     ph1.awaitAdvance(ph1.getPhase());
 
+
                     for (int i = 0; i < socks.size(); i++) {
                         Socks currentSock = socks.get(i);
 
@@ -86,11 +86,13 @@ public class SockMatching {
                             matching = true;
 
                             sockQueue.add(currentSock);
-                            System.out.println("Send " + currentSock.color + " Socks to Washer. Total inside queue " + sockQueue.size());
+
+                            int totalSocks = socks.get(0).getNumSocks() + socks.get(1).getNumSocks() + socks.get(2).getNumSocks() + socks.get(3).getNumSocks();
+                            System.out.println("Send " + currentSock.color + " Socks to Washer. Total socks " + (totalSocks) + ". Total inside queue " + sockQueue.size());
                         }
 
                         if (sockQueue.size() > 0) {
-                            new SockMatching().washingSocksThread(ph1, ph2, ph3, sockQueue.remove(0));
+                            new SockMatching().washingSocksThread(ph3, sockQueue.remove(0));
                             // Give matchingSocksThread time
                             try {
                                 Thread.sleep(100);
@@ -106,7 +108,7 @@ public class SockMatching {
         }).start();
     }
 
-    private void washingSocksThread(Phaser ph1, Phaser ph2, Phaser ph3, Socks sock) {
+    private void washingSocksThread(Phaser ph3, Socks sock) {
         ph3.register();
 
         new Thread(new Runnable() {
