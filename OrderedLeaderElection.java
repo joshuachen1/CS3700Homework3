@@ -3,36 +3,40 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class OrderedLeaderElection {
     public static void main(String[] args) {
-        // N elected official threads
-        Phaser ph1 = new Phaser();
-        // One rank thread
-        Phaser ph2 = new Phaser(1);
-
         final int numThreads = 10;
+        Thread[] electedOfficialThread = new Thread[numThreads];
+        Thread rankThread = new Thread(new RankThread());
+
 
         for (int i = 0; i < numThreads; i++) {
-            new OrderedLeaderElection().electedOfficialThread(ph1);
+            electedOfficialThread[i] = new Thread(new ElectedOfficialThread());
+            electedOfficialThread[i].start();
         }
-
-        Thread rankThread;
-
     }
 
-    private void electedOfficialThread(Phaser ph1) {
-        ph1.register();
+    private static class RankThread implements Runnable {
+        @Override
+        public void run() {
+            try {
+                // Wait for a new elected officials to be created
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String name = Thread.currentThread().getName();
-                int rank = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
-                Thread leader = Thread.currentThread();
-
-                System.out.println("Name: " + name + " Rank: " + rank + " Leader: " + leader.getName());
-
-
-                ph1.arriveAndDeregister();
             }
-        }).start();
+        }
+    }
+
+    private static class ElectedOfficialThread implements Runnable {
+        @Override
+        public void run() {
+            String name = Thread.currentThread().getName();
+            int rank = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+            Thread leader = Thread.currentThread();
+
+            System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", name, rank, leader.getName());
+
+            // notify the rank thread that a new elected official has been created
+            Thread.currentThread().interrupt();
+        }
     }
 }
