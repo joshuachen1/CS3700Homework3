@@ -1,41 +1,57 @@
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class OrderedLeaderElection {
-    public static void main(String[] args) throws InterruptedException {
-        final int numThreads = 10;
-        ElectedOfficial[] elecOff = new ElectedOfficial[numThreads];
-        Thread[] electedOfficialThread = new Thread[numThreads];
-        Thread rankThread = new Thread(new RankThread(electedOfficialThread, elecOff));
 
+    private static class ElectedOfficial {
+        String name;
+        int rank;
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+
+        final int numThreads = 10;
+        ArrayList<Thread> thread = new ArrayList<>();
+
+        ElectedOfficial[] electedOfficials = new ElectedOfficial[numThreads];
+        ElectedOfficial leader = new ElectedOfficial();
+
+        Thread rankThread = new Thread(new RankThread(leader));
         rankThread.start();
 
         for (int i = 0; i < numThreads; i++) {
-            electedOfficialThread[i] = new Thread(new ElectedOfficialThread(rankThread, elecOff, i));
-            electedOfficialThread[i].start();
+            electedOfficials[i] = new ElectedOfficial();
+        }
+
+        for (int i = 0; i < numThreads; i++) {
+            thread.add(new Thread(new ElectedOfficialThread(rankThread, electedOfficials[i], leader)));
+            thread.get(i).start();
             Thread.sleep(1000);
         }
     }
 
     private static class RankThread implements Runnable {
-        Thread[] electedOfficialThread;
-        Thread currentLeader;
-        int highestRank;
-        ElectedOfficial[] elecOff;
 
-        public RankThread(Thread[] electedOfficialThread, ElectedOfficial[] elecOff) {
-            this.electedOfficialThread = electedOfficialThread;
-            this.currentLeader = Thread.currentThread();
-            int highestRank = Integer.MIN_VALUE;
-            this.elecOff = elecOff;
+        ElectedOfficial leader;
+
+        public RankThread(ElectedOfficial leader) {
+            this.leader = leader;
+            this.leader.name = null;
+            this.leader.rank = Integer.MIN_VALUE;
         }
 
         @Override
         public void run() {
-            try {
-                // Wait for a new elected officials to be created
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-
+            boolean changingLeader = true;
+            while (changingLeader) {
+                changingLeader = false;
+                try {
+                    // Wait for a new elected officials to be created
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    System.out.println("Changing Leader");
+                    changingLeader = true;
+                }
             }
         }
     }
@@ -43,31 +59,26 @@ public class OrderedLeaderElection {
     private static class ElectedOfficialThread implements Runnable {
         Thread rankThread;
         ElectedOfficial elecOff;
+        ElectedOfficial leader;
 
-        public ElectedOfficialThread(Thread rankThread, ElectedOfficial[] elecOff, int ID) {
+        public ElectedOfficialThread(Thread rankThread, ElectedOfficial electedOfficials, ElectedOfficial leader) {
             this.rankThread = rankThread;
-            elecOff[ID] = new ElectedOfficial();
-            this.elecOff = elecOff[ID];
+            this.elecOff = electedOfficials;
+            this.leader = leader;
         }
 
         @Override
         public void run() {
             elecOff.name = Thread.currentThread().getName();
             elecOff.rank = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
-            elecOff.leader = Thread.currentThread();
 
-            synchronized (this) {
-                    try {
-                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", elecOff.name, elecOff.rank, elecOff.leader.getName());
-
-                        // notify the rank thread that a new elected official has been created
-                        rankThread.interrupt();
-                        wait();
-                        System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", elecOff.name, elecOff.rank, elecOff.leader.getName());
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            if (leader.name == null) {
+                System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", elecOff.name, elecOff.rank, Thread.currentThread().getName());
+            } else {
+                System.out.printf("Name: %10s \tRank: %12d \tLeader: %10s\n", elecOff.name, elecOff.rank, leader.name);
             }
+
+            rankThread.interrupt();
         }
     }
 }
