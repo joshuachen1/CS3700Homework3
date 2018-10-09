@@ -1,6 +1,12 @@
 import java.util.concurrent.Phaser;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ *  @author Joshua Chen
+ *  Class: CS3700.01
+ *  Date: Oct 8, 2018
+ */
+
 public class MaxtrixMultiplication {
     public static void main(String[] args) throws InterruptedException{
         Phaser ph = new Phaser();

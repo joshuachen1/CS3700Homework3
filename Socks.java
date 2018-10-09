@@ -1,3 +1,8 @@
+/**
+ *  @author Joshua Chen
+ *  Class: CS3700.01
+ *  Date: Oct 8, 2018
+ */
 public class Socks {
     String color;
     int numSocks;

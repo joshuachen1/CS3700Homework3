@@ -3,6 +3,12 @@ import java.util.Arrays;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ *  @author Joshua Chen
+ *  Class: CS3700.01
+ *  Date: Oct 8, 2018
+ */
+
 public class SockMatching {
     public static void main(String[] args) throws InterruptedException{
         final int numThreads = 4;

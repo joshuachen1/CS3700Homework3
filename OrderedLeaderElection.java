@@ -1,6 +1,12 @@
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ *  @author Joshua Chen
+ *  Class: CS3700.01
+ *  Date: Oct 8, 2018
+ */
+
 public class OrderedLeaderElection {
 
     private static class ElectedOfficial {
@@ -87,7 +93,7 @@ public class OrderedLeaderElection {
             }));
 
             threads.get(i).start();
-            Thread.sleep(500);
+            Thread.sleep(1000);
         }
     }
 
